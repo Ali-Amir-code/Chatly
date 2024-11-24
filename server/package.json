@@ -1,6 +1,15 @@
 {
+  "name": "chatly-server",
+  "version": "1.0.0",
+  "description": "Server for Chatly App",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Ali Amir",
+  "license": "MIT",
   "dependencies": {
     "express": "^4.21.1",
-    "socket.io": "^4.8.1"
+    "socketio": "^1.0.0"
   }
 }
