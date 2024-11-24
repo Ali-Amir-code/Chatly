@@ -57,13 +57,13 @@
     color: rgba(255, 255, 255, 0.6);
 }
 
-.input-container .info{
+.input-container #info{
     font-size: 1.1rem;
     margin: 3px 20px;
 
 }
 
-.input-container .info #loader{
+.input-container #info #loader{
     display: none;
 }
 

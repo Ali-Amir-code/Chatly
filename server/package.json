@@ -9,6 +9,7 @@
   "author": "Ali Amir",
   "license": "MIT",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.21.1",
     "socketio": "^1.0.0"
   }

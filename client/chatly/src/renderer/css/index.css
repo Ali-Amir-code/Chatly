@@ -1,8 +1,8 @@
-/* Contact Styling */
+/* Contacts List Styling */
 
 #contactListContainer {
   height: 100vh;
-  background-color: black;
+  background-color: #2c2c2c;
   width: 25vw;
   max-width: 600px;
   min-width: 300px;
@@ -20,6 +20,7 @@
   max-height: 100%;
   margin: 0;
   padding: 0;
+  border: 1px solid #1c1c1c;
 }
 
 .contactElement>button {
@@ -27,6 +28,7 @@
   background-color: #3c3c3c;
   color: white;
   font-family: cursive;
+  border:none;
 }
 
 .contactElement>button:hover {
@@ -61,7 +63,8 @@
 }
 
 .messageBoxHeader{
-
+  border-bottom: 1px solid #4c4c4c;
+  margin-bottom: 5px;
 }
 
 .messageBoxHeader h2{
