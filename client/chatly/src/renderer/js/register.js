@@ -1,16 +1,45 @@
 const registerForm = document.getElementById('registerForm');
+
+const nameInputField = document.getElementById('name');
 const usernameInputField = document.getElementById('username');
-const infoElement = document.querySelector('#info p');
+const passwordInputField = document.getElementById('password');
+const confirmPasswordInputField = document.getElementById('confirmPassword');
+
+const usernameInfo = document.querySelector('#usernameInfo p');
+const passwordInfo = document.querySelector('#passwordInfo p');
 const loader = document.getElementById('loader');
+
 const formSubmitButton = document.getElementById('submitButton');
 
-let controller = null;
-let isUserAvailable = false;
+const serverURL = 'http://localhost:3000';
 
-registerForm.addEventListener('submit', async (e) => {
-    console.log("form submitted");
-    e.preventDefault();
-});
+let controller = null;
+let isUsernameAvailable = false;
+
+const submitForm = async () => {
+
+    if (!isUsernameAvailable) {
+        return;
+    }
+
+    const name = nameInputField.value.trim();
+    const username = usernameInputField.value.trim();
+    const password = passwordInputField.value;
+
+    const response = await fetch(`${serverURL}/register`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, username, password }),
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+    }
+};
+
+registerForm.addEventListener('submit', submitForm);
 
 const getSignal = () => {
     if (controller) {
@@ -24,7 +53,7 @@ const checkUsernameAvailability = async (username) => {
     const signal = getSignal();
     try {
         const response = await fetch(
-            `http://localhost:3000/checkUsernameAvailability?username=${encodeURIComponent(username)}`, 
+            `${serverURL}/checkUsernameAvailability?username=${encodeURIComponent(username)}`,
             { signal }
         );
 
@@ -52,14 +81,26 @@ const hideLoader = () => {
     loader.style.display = 'none';
 };
 
-const showInfo = (text, color) => {
-    infoElement.innerText = text;
-    infoElement.style.color = color;
+const showInfo = (text, color, target) => {
+    if (target === 'username') {
+        usernameInfo.innerText = text;
+        usernameInfo.style.color = color;
+    }
+    if (target === 'password') {
+        passwordInfo.innerText = text;
+        passwordInfo.style.color = color;
+    }
 };
 
-const hideInfo = () => {
-    infoElement.innerText = '';
-    infoElement.style.color = '';
+const hideInfo = (target) => {
+    if (target === 'username') {
+        usernameInfo.innerText = '';
+        usernameInfo.style.color = '';
+    }
+    if (target === 'password') {
+        passwordInfo.innerText = '';
+        passwordInfo.style.color = '';
+    }
 };
 
 // Function to validate the username
@@ -68,23 +109,39 @@ const isValidUsername = (username) => {
     return usernameRegex.test(username);
 };
 
+passwordInputField.addEventListener('input', () => {
+    if (passwordInputField.value === confirmPasswordInputField.value) {
+        hideInfo('password');
+    }
+});
+
+confirmPasswordInputField.addEventListener('input', () => {
+    if (passwordInputField.value !== confirmPasswordInputField.value) {
+        showInfo('Passwords do not match', 'red', 'password');
+        formSubmitButton.disabled = true;
+    } else {
+        hideInfo('password');
+        formSubmitButton.disabled = false;
+    }
+})
+
 usernameInputField.addEventListener('input', async (e) => {
     const username = e.target.value.trim();
     if (!username) {
         hideLoader();
-        hideInfo();
+        hideInfo('username');
         return;
     }
 
     // Validate username
     if (!isValidUsername(username)) {
         hideLoader();
-        showInfo('Username can only contain letters, numbers, and underscores', 'red');
+        showInfo('Username can only contain letters, numbers, and underscores', 'red', 'username');
         return;
     }
 
     showLoader();
-    showInfo('Checking Username Availability', 'white');
+    showInfo('Checking Username Availability', 'white', 'username');
 
     const result = await checkUsernameAvailability(username);
 
@@ -96,16 +153,16 @@ usernameInputField.addEventListener('input', async (e) => {
     }
 
     if (result) {
-        isUserAvailable = true;
-        showInfo('Username is available', 'lightgreen');
+        isUsernameAvailable = true;
+        showInfo('Username is available', 'lightgreen', 'username');
         formSubmitButton.disabled = false;
     } else if (result === false) {
-        isUserAvailable = false;
-        showInfo('Username is not available', 'red');
+        isUsernameAvailable = false;
+        showInfo('Username is not available', 'red', 'username');
         formSubmitButton.disabled = true;
     } else {
-        isUserAvailable = false;
-        showInfo('Something went wrong', 'orange');
+        isUsernameAvailable = false;
+        showInfo('Something went wrong', 'orange', 'username');
         formSubmitButton.disabled = true;
     }
 });

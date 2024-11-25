@@ -21,7 +21,7 @@
             <div class="input-container">
                 <label for="username">Username:*</label>
                 <input type="text" name="username" id="username" placeholder="Type a username here" required>
-                <div id="info">
+                <div id="usernameInfo">
                     <svg id="loader" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="20" height="20">
                         <circle cx="50" cy="50" r="35" stroke="#fff" stroke-width="10" fill="none"
                         stroke-dasharray="220" stroke-dashoffset="0">
@@ -41,6 +41,9 @@
             <div class="input-container">
                 <label for="confirmPassword">Confirm Password:*</label>
                 <input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirm your password" required>
+                <div id="passwordInfo">
+                    <p></p>
+                </div>
             </div>
             <div class="button-container">
                 <button id="submitButton" type="submit" disabled>Sign Up</button>
