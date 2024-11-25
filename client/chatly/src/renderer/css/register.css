@@ -58,9 +58,13 @@
 }
 
 .input-container #info{
-    font-size: 1.1rem;
+    font-size: .9rem;
     margin: 3px 20px;
 
+}
+
+.input-container #info p{
+    display: inline;
 }
 
 .input-container #info #loader{
