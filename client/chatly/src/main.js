@@ -6,6 +6,10 @@ let mainWindow;
 
 let isQuitting = false;
 
+let myData = {
+  me: null,
+  contacts: [],
+}
 
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -14,7 +18,7 @@ if (require('electron-squirrel-startup')) {
 async function isDataFileExists() {
   try {
     await fs.access(path.join(app.getPath('userData'), 'data.json'));
-    return true;
+    return false;
   } catch {
     return false;
   }
@@ -25,14 +29,15 @@ async function loadData() {
   return JSON.parse(data);
 }
 
-async function createDataFile() {
-  await fs.writeFile(path.join(app.getPath('userData'), 'data.json'), JSON.stringify({}));
+async function saveData() {
+  await fs.writeFile(path.join(app.getPath('userData'), 'data.json'), JSON.stringify(myData));
 }
 
-async function saveData(data) {
-  await fs.writeFile(path.join(app.getPath('userData'), 'data.json'), JSON.stringify(data));
-  isQuitting = true;
-  app.quit();
+function loadMessageScreen(window) {
+  window.loadFile(path.join(__dirname, 'renderer/html/index.html'));
+  window.webContents.once('did-finish-load', () => {
+    window.webContents.send('my-data', myData);
+  });
 }
 
 const createWindow = async () => {
@@ -46,25 +51,24 @@ const createWindow = async () => {
 
   try {
     if (await isDataFileExists()) {
-      const data = await loadData();
-      mainWindow.loadFile(path.join(__dirname, 'renderer/html/index.html'));
-      mainWindow.webContents.once('did-finish-load', () => {
-        mainWindow.webContents.send('data', data);
-      });
+      myData = await loadData();
+      loadMessageScreen(mainWindow);
     } else {
-      await createDataFile();
       mainWindow.loadFile(path.join(__dirname, 'renderer/html/firstTime.html'));
     }
   }
-   catch (err) {
+  catch (err) {
 
   }
   ipcMain.handle('save-data', saveData);
+  ipcMain.handle('firstTime', (event, me) => {
+    myData.me = me;
+    loadMessageScreen(mainWindow);
+  });
 };
 
 app.whenReady().then(() => {
   createWindow();
-
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -73,10 +77,8 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', async () => {
-  if(process.platform !== 'darwin') {
-    if(!isQuitting) {
-      return
-    }
+  if (process.platform !== 'darwin') {
+    await saveData();
     app.quit();
   }
 });

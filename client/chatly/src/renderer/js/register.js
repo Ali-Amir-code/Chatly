@@ -16,8 +16,8 @@ const serverURL = 'http://localhost:3000';
 let controller = null;
 let isUsernameAvailable = false;
 
-const submitForm = async () => {
-
+const submitForm = async (e) => {
+    e.preventDefault();
     if (!isUsernameAvailable) {
         return;
     }
@@ -33,9 +33,9 @@ const submitForm = async () => {
         },
         body: JSON.stringify({ name, username, password }),
     });
-
     if (response.ok) {
-        const data = await response.json();
+        const me = await response.json();
+        window.electronAPI.firstTime(me);
     }
 };
 
