@@ -11,6 +11,7 @@ app.use(cors());
 const PORT = 3000;
 
 const usernames = ['ali', 'amir', 'muhammad'];
+const users = [];
 
 let uniqueID = 1000;
 
@@ -29,12 +30,20 @@ app.get('/checkUsernameAvailability', (req, res) => {
 
 app.post('/register', (req, res) => {
   const { name, username, password } = req.body;
-  console.log(name, username, password);
   res.json({
     'uniqueID' : getUniqueID(),
     'name' : name,
     'username' : username,
     'password' : password
+  });
+});
+
+app.post('/login', async (req, res) => {
+  res.json({
+    'uniqueID': 2341,
+    'name': 'Ali',
+    'username': req.body.username,
+    'password': req.body.password,
   });
 });
 

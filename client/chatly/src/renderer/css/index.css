@@ -1,5 +1,11 @@
 /* Contacts List Styling */
 
+#addContactButton{
+  height: 2.3rem;
+  margin: 5px;
+  cursor: pointer;
+}
+
 #contactListContainer {
   height: 100vh;
   background-color: #2c2c2c;
@@ -9,7 +15,7 @@
   overflow-y: auto;
 }
 
-.contactList {
+#contactList {
   margin: 0;
   padding: 0;
   list-style-type: none;
@@ -55,23 +61,23 @@
 
 /* Message box styling */
 
-#messageScreen {
+#mainScreen {
   height: 100vh;
   background-color: orange;
   width: 75vw;
   overflow-y: auto;
 }
 
-.messageBoxHeader{
+#messageBoxHeader{
   border-bottom: 1px solid #4c4c4c;
   margin-bottom: 5px;
 }
 
-.messageBoxHeader h2{
+#messageBoxHeader h2{
 
 }
 
-.messageContainer{
+#messageContainer{
   list-style-type: none;
   display: flex;
   flex-direction: column;
@@ -79,7 +85,7 @@
   padding: 0;
 }
 
-.messageContainer .message{
+#messageContainer .message{
   margin: 0px 10px;
   border: 1px solid black;
   border-radius: 5px;
@@ -89,16 +95,16 @@
 }
 
 /*Selects Last message*/
-.messageContainer:last-child{
+#messageContainer:last-child{
   margin-bottom: 60px;
 }
 
-.messageContainer .left{
+#messageContainer .left{
   align-self: flex-start;
   background-color: lightgreen;
 }
 
-.messageContainer .right{
+#messageContainer .right{
   align-self: flex-end;
   background-color: lightblue;
 }
@@ -110,14 +116,14 @@
   float: right;
 }
 
-.messageInputContainer{
+#messageInputContainer{
   position: fixed;
   bottom: 10px;
   text-align: center;
-  width: inherit;
+  width: 70%;
 }
 
-.messageInputContainer input{
+#messageInputContainer input{
   width: 80%;
   border-radius: 5px;
   padding: 5px;
@@ -125,11 +131,13 @@
   height: 25px;
 }
 
-.messageInputContainer button{
+#messageInputContainer button{
   font-size: 1.2rem;
   height: 25px;
   padding: 5px;
+  border-radius: 5px;
   box-sizing: inherit;
+  cursor: pointer;
 }
 
 
@@ -141,7 +149,7 @@
 
 
 @media (max-width:600px) {
-  #messageScreen {
+  #mainScreen {
       display: none;
   }
 

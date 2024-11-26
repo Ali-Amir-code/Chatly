@@ -26,17 +26,7 @@ const submitForm = async (e) => {
     const username = usernameInputField.value.trim();
     const password = passwordInputField.value;
 
-    const response = await fetch(`${serverURL}/register`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, username, password }),
-    });
-    if (response.ok) {
-        const me = await response.json();
-        window.electronAPI.firstTime(me);
-    }
+    electronAPI.register(name, username, password);
 };
 
 registerForm.addEventListener('submit', submitForm);

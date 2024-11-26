@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs/promises');
 
+const serverURL = 'http://localhost:3000';
+
 let mainWindow;
 
 let isQuitting = false;
@@ -27,6 +29,36 @@ async function isDataFileExists() {
 async function loadData() {
   const data = await fs.readFile(path.join(app.getPath('userData'), 'data.json'), 'utf-8');
   return JSON.parse(data);
+}
+
+async function registerMe(event, name, username, password) {
+  const response = await fetch(`${serverURL}/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name, username, password }),
+  });
+  if (response.ok) {
+    const me = await response.json();
+    myData.me = me;
+    loadMessageScreen(mainWindow);
+  }
+}
+
+async function loginMe(event,username,password) {
+  const response = await fetch(`${serverURL}/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({username, password }),
+  });
+  if (response.ok) {
+    const me = await response.json();
+    myData.me = me;
+    loadMessageScreen(mainWindow);
+  }
 }
 
 async function saveData() {
@@ -60,11 +92,9 @@ const createWindow = async () => {
   catch (err) {
 
   }
-  ipcMain.handle('save-data', saveData);
-  ipcMain.handle('firstTime', (event, me) => {
-    myData.me = me;
-    loadMessageScreen(mainWindow);
-  });
+  ipcMain.handle('register', registerMe);
+  ipcMain.handle('login',loginMe);
+  ipcMain.handle('saveData', saveData);
 };
 
 app.whenReady().then(() => {
