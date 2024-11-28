@@ -13,7 +13,15 @@ app.use(cors());
 
 const PORT = 3000;
 
-const users = [];
+const users = [
+    {
+        uniqueID: 234,
+        name: 'ali',
+        username:'ali',
+        password:'123',
+        addedUsers: [23,234,234],
+    }
+];
 const onlineUserIDs = [];
 
 let uniqueID = 1000;
@@ -24,6 +32,10 @@ function getUniqueID() {
 
 function extractPropertyValues(arr,property){
     return arr.map(obj => obj[property]);
+}
+
+function getUser(data, propertyName){
+    users.find(user => user[propertyName] === data);
 }
 
 async function register(req, res) {

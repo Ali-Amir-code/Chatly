@@ -30,38 +30,48 @@ async function loadData() {
 }
 
 async function registerMe(event, name, username, password) {
-  const response = await fetch(`${serverURL}/register`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ name, username, password }),
-  });
-  if (response.ok) {
-    const me = await response.json();
-    myData.me = me;
-    loadMessageScreen(mainWindow);
-  }
-}
+  try{
 
-async function loginMe(event,username,password) {
-  const response = await fetch(`${serverURL}/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({username, password }),
-  });
-  if(response.ok){
-
-    if (response.status === 401) {
-      console.log('User Not Available')
-    }
-    else{
+    const response = await fetch(`${serverURL}/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, username, password }),
+    });
+    if (response.ok) {
       const me = await response.json();
       myData.me = me;
       loadMessageScreen(mainWindow);
     }
+  }catch(err){
+
+  }
+}
+
+async function loginMe(event,username,password) {
+  try{
+
+    const response = await fetch(`${serverURL}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({username, password }),
+    });
+    if(response.ok){
+      if (response.status === 401) {
+        return false;
+      }
+      else{
+        const me = await response.json();
+        myData.me = me;
+        loadMessageScreen(mainWindow);
+        return true;
+      }
+    }
+  }catch(err){
+    
   }
 }
 
