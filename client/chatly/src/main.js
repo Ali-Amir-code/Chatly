@@ -6,8 +6,6 @@ const serverURL = 'http://localhost:3000';
 
 let mainWindow;
 
-let isQuitting = false;
-
 let myData = {
   me: null,
   contacts: [],
@@ -54,10 +52,16 @@ async function loginMe(event,username,password) {
     },
     body: JSON.stringify({username, password }),
   });
-  if (response.ok) {
-    const me = await response.json();
-    myData.me = me;
-    loadMessageScreen(mainWindow);
+  if(response.ok){
+
+    if (response.status === 401) {
+      console.log('User Not Available')
+    }
+    else{
+      const me = await response.json();
+      myData.me = me;
+      loadMessageScreen(mainWindow);
+    }
   }
 }
 
