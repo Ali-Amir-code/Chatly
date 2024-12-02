@@ -8,7 +8,42 @@ let mainWindow;
 
 let myData = {
   me: null,
-  contacts: [],
+  contacts: [
+    {
+      id: '1000',
+      name: 'John Doe',
+      username: '@johndoe',
+      messages: [
+        {
+          content: 'Hello, John',
+          time: '2023-06-01T12:34:56.789Z',
+          from: 'me'
+        },
+        {
+          content: 'Hello, Ali',
+          time: '2023-06-01T12:37:56.789Z',
+          from: 'not-me'
+        }
+      ]
+    },
+    {
+      id: '1001',
+      name: 'Jane Doe',
+      username: '@janedoe',
+      messages: [
+        {
+          content: 'Hello, Jane',
+          time: '2023-06-01T10:34:56.789Z',
+          from: 'me'
+        },
+        {
+          content: 'Hello, Ali',
+          time: '2023-06-01T11:34:56.789Z',
+          from: 'not-me'
+        },
+      ]
+    }
+  ],
 }
 
 if (require('electron-squirrel-startup')) {
@@ -26,7 +61,7 @@ async function isDataFileExists() {
 
 async function loadData() {
   const data = await fs.readFile(path.join(app.getPath('userData'), 'data.json'), 'utf-8');
-  return JSON.parse(data);
+  myData = JSON.parse(data);
 }
 
 async function registerMe(event, name, username, password) {
@@ -42,7 +77,7 @@ async function registerMe(event, name, username, password) {
     if (response.ok) {
       const me = await response.json();
       myData.me = me;
-      loadMessageScreen(mainWindow);
+      loadMainScreen(mainWindow);
     }
   }catch(err){
 
@@ -66,7 +101,7 @@ async function loginMe(event,username,password) {
       else{
         const me = await response.json();
         myData.me = me;
-        loadMessageScreen(mainWindow);
+        loadMainScreen(mainWindow);
         return true;
       }
     }
@@ -79,7 +114,7 @@ async function saveData() {
   await fs.writeFile(path.join(app.getPath('userData'), 'data.json'), JSON.stringify(myData));
 }
 
-function loadMessageScreen(window) {
+function loadMainScreen(window) {
   window.loadFile(path.join(__dirname, 'renderer/html/index.html'));
   window.webContents.once('did-finish-load', () => {
     window.webContents.send('my-data', myData);
@@ -97,8 +132,8 @@ const createWindow = async () => {
 
   try {
     if (await isDataFileExists()) {
-      myData = await loadData();
-      loadMessageScreen(mainWindow);
+      await loadData();
+      loadMainScreen(mainWindow);
     } else {
       mainWindow.loadFile(path.join(__dirname, 'renderer/html/firstTime.html'));
     }
