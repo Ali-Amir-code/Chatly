@@ -5,7 +5,7 @@ const cors = require('cors');
 const app = express();
 const server = http.createServer(app);
 
-const {Server} = require('socket.io');;
+const { Server } = require('socket.io');;
 const io = new Server(server);
 
 app.use(express.json())
@@ -13,35 +13,49 @@ app.use(cors());
 
 const PORT = 3000;
 
+
 const users = [
     {
-        uniqueID: 234,
+        id: 234,
         name: 'ali',
-        username:'ali',
-        password:'123',
-        addedUsers: [23,234,234],
+        username: 'ali',
+        password: '123',
+        addedUsers: [23, 234, 234],
+        unDeliveredMessages: [
+
+        ]
     }
 ];
-const onlineUserIDs = [1000];
+// const onlineUserIDs = [1000];
 
-let uniqueID = 1000;
+const onlineUserIDs = new Map([
+    [1000, 'sdfhsodfsodfjsdof']
+]);
 
-function getUniqueID() {
-    return uniqueID++;
+let id = 1000;
+
+
+function getNewId() {
+    return id++;
 }
 
-function extractPropertyValues(arr,property){
+function extractPropertyValues(arr, property) {
     return arr.map(obj => obj[property]);
 }
 
-function getUser(data, propertyName){
+function getUser(data, propertyName) {
     users.find(user => user[propertyName] === data);
+}
+
+function isValidUser(data) {
+    const user = getUser(data, 'id');
+    return user && user.username === data.username && user.password === data.password;
 }
 
 async function register(req, res) {
     const { name, username, password } = req.body;
     const data = {
-        uniqueID: getUniqueID(),
+        id: getNewId(),
         name: name,
         username: username,
         password: password,
@@ -70,11 +84,11 @@ app.get('/checkUsernameAvailability', (req, res) => {
 
 app.get('/checkStatus', (req, res) => {
     const id = Number(req.query.id);
-    const result = onlineUserIDs.find(userID => userID === id);
+    const result = onlineUserIDs.has(id);
     setTimeout(() => {
-        if(result){
+        if (result) {
             res.json('online');
-        }else{
+        } else {
             res.json('offline');
         }
     }, 2000);
@@ -87,4 +101,21 @@ app.post('/login', login);
 
 server.listen(PORT, () => {
     console.log(`Listening of localhost:${PORT}`);
+});
+
+// Socket Logic
+
+io.use((socket, next) => {
+    const data = socket.handshake.auth.user;
+    if (isValidUser(data)) {
+        next();
+    } else {
+        next(new Error('Authentication error'));
+    }
+})
+
+io.on('connection', (socket) => {
+    socket.on('setId', (userId) => {
+        onlineUserIDs.set(userId, socket.id);
+    })
 });

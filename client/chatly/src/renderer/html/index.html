@@ -34,7 +34,6 @@
                     <button id="closeMessageScreen" onclick="closeMessageScreen()">&times;</button>
                 </div>
                 <div id="messages">
-                    <!-- messages will be displayed here -->
                 </div>
                 <div id="messageInputContainer">
                     <input type="text" id="messageInput" placeholder="Type a message...">
@@ -57,7 +56,9 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <div id="infoBox">
+        <p id="info">This is some info to keep you informed</p>
+    </div>
     <script src="../js/index.js"></script>
 </body>
 
