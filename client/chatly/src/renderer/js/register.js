@@ -106,6 +106,10 @@ passwordInputField.addEventListener('input', () => {
 });
 
 confirmPasswordInputField.addEventListener('input', () => {
+    if(passwordInputField.value === ''){
+        hideInfo('password');
+        return;
+    }
     if (passwordInputField.value !== confirmPasswordInputField.value) {
         showInfo('Passwords do not match', 'red', 'password');
         formSubmitButton.disabled = true;

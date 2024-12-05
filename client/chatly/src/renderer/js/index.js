@@ -16,48 +16,12 @@ const messagesContainer = document.getElementById('messages');
 
 const serverURL = 'http://localhost:3000';
 
-let selectedContactId = null;
+let selectedContactId;
 
-const myData = {
+let myData = {
     me: {},
-    contacts: [
-        {
-            id: 1000,
-            name: 'John Doe',
-            username: 'johndoe',
-            messages: [
-                {
-                    content: 'Hello, John',
-                    time: '2023-06-01T12:34:56.789Z',
-                    isFromMe: true
-                },
-                {
-                    content: 'Hello, Ali',
-                    time: '2023-06-01T12:37:56.789Z',
-                    isFromMe: false
-                }
-            ]
-        },
-        {
-            id: 1001,
-            name: 'Jane Doe',
-            username: 'janedoe',
-            messages: [
-                {
-                    content: 'Hello, Jane',
-                    time: '2023-06-01T10:34:56.789Z',
-                    isFromMe: true
-                },
-                {
-                    content: 'Hello, Ali',
-                    time: '2023-06-01T11:34:56.789Z',
-                    isFromMe: false
-                },
-            ]
-        }
-    ]
+    contacts: []
 };
-
 
 async function checkStatus(id, callback) {
     try {
@@ -84,6 +48,7 @@ async function checkStatus(id, callback) {
 }
 
 function makeContactElement(contact) {
+    console.log(contact);
     const loadingIcon = `<span><svg id="loader" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="15" height="15"><circle cx="50" cy="50" r="35" stroke="#fff" stroke-width="10" fill="none" stroke-dasharray="220" stroke-dashoffset="0"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="1s" repeatCount="indefinite" /><animate attributeName="stroke-dashoffset" values="220;110;220" dur="1s" repeatCount="indefinite" /></circle></svg></span>`;
 
     const name = document.createElement('div');
@@ -183,12 +148,13 @@ function showInfo(text, color = 'black', time = 5) {
 
 electronAPI.onRecieveData(data => {
     myData = data;
+    console.log(myData); 
     loadContacts(myData.contacts);
-     initializeSocket();
+    initializeSocket();
 });
 
 electronAPI.onRecieveMessage(message => {
-    addMessage(message, false,false);
+    addMessage(message, false, false);
 })
 addContactBtn.addEventListener('click', () => {
     modal.style.display = 'flex';
@@ -199,6 +165,8 @@ closeModal.addEventListener('click', () => {
     modal.style.display = 'none';
 });
 
+
+
 // Add a new contact
 addContact.addEventListener('click', () => {
     const contactName = document.getElementById('contactName').value;
@@ -208,7 +176,7 @@ addContact.addEventListener('click', () => {
         modal.style.display = 'none';
         showInfo('Your request have been sent');
 
-        electronAPI.addContact(contactName, contactID);        
+        electronAPI.addContact(contactName, contactID);
     }
 });
 
