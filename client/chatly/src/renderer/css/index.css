@@ -83,6 +83,8 @@ body {
 }
 
 #userInfoContainer {
+  display: flex;
+  flex-direction: column;
   min-width: 300px;
   min-height: 300px;
   text-align: center;
@@ -91,11 +93,31 @@ body {
   border: 1px solid black;
   border-radius: 10px;
   padding: 5px;
+  max-width: 60%;
+  max-height: 70%;
+  overflow-y: auto;
 }
 
-#userInfoContainer h2{
+.highlight {
+  color: yellow;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+#userInfoContainer h2 {
   padding: 5px 15px;
   font-size: 1.7rem;
+}
+
+#notificationContainer {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid black;
+  overflow-y: auto;
+  border-radius: 5px;
+  box-shadow: inset #3c3c3c 1px 1px 3px 2px;
+  background: #28e0bc;
+  scrollbar-color: #2c3e50 transparent;
 }
 
 #messageScreen {
@@ -150,14 +172,14 @@ body {
   width: fit-content;
 }
 
-#messages .left{
+#messages .left {
   align-self: flex-start;
   background-color: #3498db;
   color: #fff;
   border: 1px solid #3498db;
 }
 
-#messages .right{
+#messages .right {
   align-self: flex-end;
   background-color: #e74c3c;
   color: #fff;
