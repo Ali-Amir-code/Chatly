@@ -1,6 +1,7 @@
 const modal = document.getElementById('modal');
 const closeModal = document.getElementById('closeModal');
-const addContact = document.getElementById('addContact');
+const addContactModalBtn = document.getElementById('addContact');
+const contactIdInput = document.getElementById('contactID');
 
 const infoBox = document.getElementById('infoBox');
 
@@ -22,6 +23,43 @@ let myData = {
     me: {},
     contacts: []
 };
+
+// const electronAPI = {
+//     onReceiveData: () => {},
+//     onRecieveMessage: () => {},
+//     onRecieveNotification: () => {}
+// };
+
+electronAPI.onReceiveData(data => {
+    myData = data;
+    displayInfo(myData.me);
+    loadNotifications(myData.me.notifications);
+    loadContacts(myData.contacts);
+});
+
+electronAPI.onRecieveMessage(message => {
+    addMessage(message, false, false);
+});
+
+electronAPI.onRecieveNotification(notification => {
+    myData.me.notifications.push(notification);
+    addNotification(notification);
+});
+
+function displayInfo(data) {
+    const infoElement = document.getElementById('userInfoContainer');
+    const heading = document.createElement('h2');
+    const userInfo = document.createElement('div');
+
+    userInfo.classList.add('userInfo');
+
+    heading.innerHTML = `Welcome to Chatly <span class="highlight">${data.name}!`;
+    userInfo.innerHTML = `Your ID is <span class="highlight">${data.id}</span> and your username is <span class="highlight">@${data.username}</span> remember this as it will be used by other users to add you as a contact`;
+
+    infoElement.appendChild(heading);
+    infoElement.appendChild(userInfo);
+}
+
 
 async function checkStatus(id, callback) {
     try {
@@ -46,6 +84,20 @@ async function checkStatus(id, callback) {
         console.log("Error making request:", err);
     }
 }
+
+contactIdInput.addEventListener('input', () => {
+    const value = contactIdInput.value;
+
+    const contactModalInfoBox = document.getElementById('contactModalInfoBox');
+
+    if (value === '' || (!isNaN(value) && Number.isInteger(Number(value)))) {
+        addContactModalBtn.disabled = false;
+        contactModalInfoBox.innerHTML = '';
+    } else {
+        contactModalInfoBox.innerHTML = 'Please enter a valid ID';
+        addContactModalBtn.disabled = true;
+    }
+});
 
 function makeContactElement(contact) {
     console.log(contact);
@@ -113,6 +165,7 @@ function showMessages(messages) {
     userInfo.classList.add('hidden');
     messageScreen.classList.remove('hidden');
 
+    messagesContainer.innerHTML = '';
     messages.forEach(message => {
         messagesContainer.appendChild(makeMessageElement(message));
     });
@@ -146,16 +199,121 @@ function showInfo(text, color = 'black', time = 5) {
     }, time * 1000);
 }
 
-electronAPI.onRecieveData(data => {
-    myData = data;
-    console.log(myData); 
-    loadContacts(myData.contacts);
-    initializeSocket();
-});
+function addUserToContacts(user) {
+    const contacts = document.getElementById('contacts');
+}
 
-electronAPI.onRecieveMessage(message => {
-    addMessage(message, false, false);
-})
+function makeNotificationElement(notification) {
+    const notificationElement = document.createElement('div');
+    const notificationHead = document.createElement('h3');
+    const notificationBody = document.createElement('div');
+    const notificationContent = document.createElement('p');
+    const buttons = document.createElement('div');
+
+    notificationElement.classList.add('notification');
+    notificationHead.classList.add('notificationHead');
+    notificationBody.classList.add('notificationBody');
+    notificationContent.classList.add('content');
+    buttons.classList.add('buttons');
+
+    notificationHead.innerText = notification.type;
+
+    if (notification.type.toLowerCase() === 'request') {
+        notificationContent.innerText = `${notification.sender.name} sent you a friend request`;
+
+        const acceptButton = document.createElement('button');
+        const rejectButton = document.createElement('button');
+
+        acceptButton.classList.add('accept');
+        rejectButton.classList.add('reject');
+
+        acceptButton.innerText = 'Accept';
+        rejectButton.innerText = 'Decline';
+
+        acceptButton.onclick = () => {
+            addUserToContacts(notification.sender);
+            sendNotification('Response', { id: myData.me.id, name: myData.me.name, username: myData.me.username }, notification.sender.id, 'Accepted');
+        }
+        rejectButton.onclick = () => {
+            sendNotification('Response', { id: myData.me.id, name: myData.me.name, username: myData.me.username }, notification.sender.id, 'Rejected');
+        }
+
+        buttons.appendChild(acceptButton);
+        buttons.appendChild(rejectButton);
+
+    } else if (notification.type.toLowerCase() === 'response') {
+        notificationContent.innerText = `${notification.sender.name} ${notification.status} your friend request`;
+
+        const doneButton = document.createElement('button');
+
+        doneButton.innerText = 'Ok';
+
+        doneButton.classList.add('done');
+
+        if (notification.status.toLowerCase() === 'accepted') {
+            addUserToContacts(notification.sender);
+        }
+
+        doneButton.onclick = () => {
+            const notificationContainer = document.getElementById('notificationContainer');
+            notificationContainer.removeChild(notificationElement);
+        };
+
+        buttons.appendChild(doneButton);
+    }
+
+    notificationBody.appendChild(notificationContent);
+    notificationBody.appendChild(buttons);
+    notificationElement.appendChild(notificationHead);
+    notificationElement.appendChild(notificationBody);
+
+    return notificationElement;
+}
+
+function addNotification(notification) {
+    const notificationContainer = document.getElementById('notificationContainer');
+    notificationContainer.appendChild(makeNotificationElement(notification));
+}
+
+function loadNotifications(notifications) {
+    notifications.forEach(notification => {
+        addNotification(notification);
+    })
+}
+
+async function sendNotification(type, sender, receiverId, status = undefined) {
+    console.log('in sendnotification');
+    const notification = {
+        type: type,
+        sender: sender,
+        receiverId: receiverId,
+        status: status,
+    }
+    try {
+        const response = await fetch(`${serverURL}/notification`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(notification)
+        });
+        if (response.ok) {
+            try {
+                const result = await response.json();
+                console.log(result);
+                return result;
+            } catch (err) {
+                console.log("Error making request:", err);
+                return false;
+            }
+        }
+        return true;
+    } catch (err) {
+        console.log("Error making request:", err);
+        return false;
+    }
+}
+
 addContactBtn.addEventListener('click', () => {
     modal.style.display = 'flex';
 });
@@ -168,15 +326,25 @@ closeModal.addEventListener('click', () => {
 
 
 // Add a new contact
-addContact.addEventListener('click', () => {
-    const contactName = document.getElementById('contactName').value;
-    const contactID = document.getElementById('contactID').value;
-
-    if (contactName && contactID) {
+addContactModalBtn.addEventListener('click', async () => {
+    const contactID = +document.getElementById('contactID').value;
+    const me = {
+        id: myData.me.id,
+        name: myData.me.name,
+        username: myData.me.username,
+    }
+    if (contactID) {
         modal.style.display = 'none';
-        showInfo('Your request have been sent');
-
-        electronAPI.addContact(contactName, contactID);
+        try {
+            const isSuccessful = await sendNotification('Request', me, contactID);
+            if (!isSuccessful) {
+                showInfo('Failed to send request', 'red');
+                return;
+            }
+            showInfo('Your request have been sent', 'green');
+        } catch (err) {
+            console.log(err);
+        }
     }
 });
 
@@ -202,3 +370,7 @@ window.onclick = function (event) {
         modal.style.display = 'none';
     }
 };
+
+window.addEventListener('beforeunload', async () => {
+    electronAPI.saveData(myData);
+});

@@ -5,11 +5,13 @@ const io = require('socket.io-client');
 
 const serverURL = 'http://localhost:3000';
 
-const socket = null;
+let socket = null;
 
 let mainWindow;
 
-const dataFilePath = path.join(app.getPath('userData'), 'data.json');
+// const dataFilePath = path.join(app.getPath('userData'), 'data.json');
+const dataFilePath = path.join(__dirname, 'data.json');
+// const dataFilePath = path.join("D:\\Programming\\projects\\Chatly\\client\\chatly", 'data.json');
 
 // let myData = {
 //   me: {
@@ -78,18 +80,27 @@ async function loadContacts(id) {
 }
 
 function initializeSocket() {
+    console.log('Initializing socket...');
     socket = io(serverURL, {
         auth: {
-            data: {
+            user: {
                 id: myData.me.id,
                 username: myData.me.username,
                 password: myData.me.password
             }
         }
     });
-    socket.emit('setId', myData.me.id);
+
+    socket.on('ping', (data) => {
+        console.log('Received ping:', data);
+    });
+    
     socket.on('message', (message) => {
         mainWindow.webContents.send('message', message);
+    });
+    socket.on('notification', (notification) => {
+        console.log('Notification Received ',notification);
+        mainWindow.webContents.send('notification', notification);
     })
 }
 
@@ -154,8 +165,9 @@ async function loginMe(event, username, password) {
     }
 }
 
-async function saveData() {
-    await fs.writeFile(dataFilePath, JSON.stringify(myData));
+async function saveData(event, data=myData) {
+    console.log('Saving data...', data);
+    await fs.writeFile(dataFilePath, JSON.stringify(data), 'utf-8');
 }
 
 
@@ -203,9 +215,8 @@ app.whenReady().then(() => {
     });
 });
 
-app.on('window-all-closed', async () => {
+app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
-        await saveData();
         app.quit();
     }
 });
