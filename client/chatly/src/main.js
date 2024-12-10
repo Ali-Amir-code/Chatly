@@ -80,7 +80,6 @@ async function loadContacts(id) {
 }
 
 function initializeSocket() {
-    console.log('Initializing socket...');
     socket = io(serverURL, {
         auth: {
             user: {
@@ -90,16 +89,15 @@ function initializeSocket() {
             }
         }
     });
-
-    socket.on('ping', (data) => {
-        console.log('Received ping:', data);
+    socket.on('unDeliveredMessages', (messages) => {
+        messages.forEach(message => {
+            mainWindow.webContents.send('recieveMessage', message);
+        });
     });
-    
     socket.on('message', (message) => {
-        mainWindow.webContents.send('message', message);
+        mainWindow.webContents.send('recieveMessage', message);
     });
     socket.on('notification', (notification) => {
-        console.log('Notification Received ',notification);
         mainWindow.webContents.send('notification', notification);
     })
 }
@@ -202,7 +200,7 @@ const createWindow = async () => {
     ipcMain.handle('register', registerMe);
     ipcMain.handle('login', loginMe);
     ipcMain.handle('saveData', saveData);
-    ipcMain.handle('message', sendMessage);
+    ipcMain.handle('sendMessage', sendMessage);
     ipcMain.handle('addContact', addContact);
 };
 

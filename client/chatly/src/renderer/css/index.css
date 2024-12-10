@@ -159,7 +159,7 @@ body {
   background-color: greenyellow;
 }
 
-.notificationBody .buttons .decline:hover{
+.notificationBody .buttons .reject:hover{
   background-color: red;
 }
 

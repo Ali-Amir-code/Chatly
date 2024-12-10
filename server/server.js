@@ -216,21 +216,23 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket) => {
-    socket.emit('ping', { message: 'Hello from server!' });
-
+    const userId = getKeyByValue(onlineUserIDs, socket.id);
+    if(userId.unDeliveredMessages.length > 0){
+        socket.emit('unDeliveredMessages', userId.unDeliveredMessages);
+    }
     socket.on('disconnect', () => {
-        const userId = getKeyByValue(onlineUserIDs, socket.id);
         if (userId) {
             onlineUserIDs.delete(userId);
         }
     });
 
     socket.on('message', (data) => {
-        const { senderId, receiverId, message } = data;
-        console.log(data);
-        const receiverSocket = onlineUserIDs.get(receiverId);
+        const receiverSocket = onlineUserIDs.get(data.to);
         if (receiverSocket) {
             io.to(receiverSocket).emit('message', data);
+        }else{
+            const receivingUser = users.find(user => user.id === data.to);
+            receivingUser.unDeliveredMessages.push(data);
         }
     });
 });

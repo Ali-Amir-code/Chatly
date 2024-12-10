@@ -7,7 +7,7 @@ const infoBox = document.getElementById('infoBox');
 
 const addContactBtn = document.getElementById('addContactBtn');
 
-const userInfo = document.getElementById('userInfo');
+const userInfoContainer = document.getElementById('userInfoContainer');
 const messageScreen = document.getElementById('messageScreen');
 
 const messageInputField = document.getElementById('messageInput');
@@ -38,7 +38,10 @@ electronAPI.onReceiveData(data => {
 });
 
 electronAPI.onRecieveMessage(message => {
-    addMessage(message, false, false);
+    myData.contacts.find(contact => contact.id === message.from).messages.push(message);
+    let addToMessageScreen = false;
+    if(message.from === selectedContactId) addToMessageScreen = true; 
+    addMessage(message, false, addToMessageScreen);
 });
 
 electronAPI.onRecieveNotification(notification => {
@@ -47,7 +50,6 @@ electronAPI.onRecieveNotification(notification => {
 });
 
 function displayInfo(data) {
-    const infoElement = document.getElementById('userInfoContainer');
     const heading = document.createElement('h2');
     const userInfo = document.createElement('div');
 
@@ -56,8 +58,8 @@ function displayInfo(data) {
     heading.innerHTML = `Welcome to Chatly <span class="highlight">${data.name}!`;
     userInfo.innerHTML = `Your ID is <span class="highlight">${data.id}</span> and your username is <span class="highlight">@${data.username}</span> remember this as it will be used by other users to add you as a contact`;
 
-    infoElement.appendChild(heading);
-    infoElement.appendChild(userInfo);
+    userInfoContainer.appendChild(heading);
+    userInfoContainer.appendChild(userInfo);
 }
 
 
@@ -100,7 +102,6 @@ contactIdInput.addEventListener('input', () => {
 });
 
 function makeContactElement(contact) {
-    console.log(contact);
     const loadingIcon = `<span><svg id="loader" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="15" height="15"><circle cx="50" cy="50" r="35" stroke="#fff" stroke-width="10" fill="none" stroke-dasharray="220" stroke-dashoffset="0"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="1s" repeatCount="indefinite" /><animate attributeName="stroke-dashoffset" values="220;110;220" dur="1s" repeatCount="indefinite" /></circle></svg></span>`;
 
     const name = document.createElement('div');
@@ -162,7 +163,7 @@ function loadContacts(contacts) {
 
 
 function showMessages(messages) {
-    userInfo.classList.add('hidden');
+    userInfoContainer.classList.add('hidden');
     messageScreen.classList.remove('hidden');
 
     messagesContainer.innerHTML = '';
@@ -173,7 +174,7 @@ function showMessages(messages) {
 
 function closeMessageScreen() {
     selectedContactId = null;
-    userInfo.classList.remove('hidden');
+    userInfoContainer.classList.remove('hidden');
     messageScreen.classList.add('hidden');
 }
 
@@ -200,7 +201,24 @@ function showInfo(text, color = 'black', time = 5) {
 }
 
 function addUserToContacts(user) {
+    const contact = {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        messages: []
+    };
+    myData.contacts.push(contact);
     const contacts = document.getElementById('contacts');
+    contacts.appendChild(makeContactElement(contact));
+}
+
+function areObjectsEqual(obj1, obj2) {
+    return JSON.stringify(obj1) === JSON.stringify(obj2);
+}
+
+function removeNotification(notification, notificationElement) {
+    myData.me.notifications = myData.me.notifications.filter(n => !areObjectsEqual(n, notification));
+    notificationElement.remove();
 }
 
 function makeNotificationElement(notification) {
@@ -232,9 +250,11 @@ function makeNotificationElement(notification) {
 
         acceptButton.onclick = () => {
             addUserToContacts(notification.sender);
+            removeNotification(notification, notificationElement);
             sendNotification('Response', { id: myData.me.id, name: myData.me.name, username: myData.me.username }, notification.sender.id, 'Accepted');
         }
         rejectButton.onclick = () => {
+            removeNotification(notification, notificationElement);
             sendNotification('Response', { id: myData.me.id, name: myData.me.name, username: myData.me.username }, notification.sender.id, 'Rejected');
         }
 
@@ -255,8 +275,7 @@ function makeNotificationElement(notification) {
         }
 
         doneButton.onclick = () => {
-            const notificationContainer = document.getElementById('notificationContainer');
-            notificationContainer.removeChild(notificationElement);
+            removeNotification(notification, notificationElement);
         };
 
         buttons.appendChild(doneButton);
@@ -359,7 +378,7 @@ sendMessageBtn.addEventListener('click', (e) => {
             from: myData.me.id
         }
         addMessage(message, true, true);
-        electronAPI.sendMessage(selectedContactId, message);
+        electronAPI.sendMessage(message);
         messageInputField.value = '';
     }
 });
