@@ -15,6 +15,7 @@ const sendMessageBtn = document.getElementById('sendMessageBtn');
 
 const messagesContainer = document.getElementById('messages');
 
+// const serverURL = 'https://chatly-server.glitch.me';
 const serverURL = 'http://localhost:3000';
 
 let selectedContactId;
@@ -24,11 +25,7 @@ let myData = {
     contacts: []
 };
 
-// const electronAPI = {
-//     onReceiveData: () => {},
-//     onRecieveMessage: () => {},
-//     onRecieveNotification: () => {}
-// };
+let contactMap = new Map();
 
 electronAPI.onReceiveData(data => {
     myData = data;
@@ -38,10 +35,13 @@ electronAPI.onReceiveData(data => {
 });
 
 electronAPI.onRecieveMessage(message => {
-    myData.contacts.find(contact => contact.id === message.from).messages.push(message);
-    let addToMessageScreen = false;
-    if(message.from === selectedContactId) addToMessageScreen = true; 
-    addMessage(message, false, addToMessageScreen);
+    let contact = myData.contacts.find(contact => contact.id === message.from);
+    if (message.from !== selectedContactId) {
+        const contactElement = contactMap.get(message.from);
+        contact.haveUnreadMessages = true;
+        contactElement.classList.remove('hideBadge');
+    }
+    addMessage(message, false, message.from === selectedContactId);
 });
 
 electronAPI.onRecieveNotification(notification => {
@@ -104,6 +104,10 @@ contactIdInput.addEventListener('input', () => {
 function makeContactElement(contact) {
     const loadingIcon = `<span><svg id="loader" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="15" height="15"><circle cx="50" cy="50" r="35" stroke="#fff" stroke-width="10" fill="none" stroke-dasharray="220" stroke-dashoffset="0"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="1s" repeatCount="indefinite" /><animate attributeName="stroke-dashoffset" values="220;110;220" dur="1s" repeatCount="indefinite" /></circle></svg></span>`;
 
+    const badge = document.createElement('img');
+    badge.classList.add('msgBadge');
+    badge.src = '../img/unread-msg-badge.png';
+
     const name = document.createElement('div');
     name.classList.add('name');
     name.innerText = contact.name;
@@ -120,12 +124,19 @@ function makeContactElement(contact) {
 
     const username = document.createElement('div');
     username.classList.add('username');
-    username.innerText = contact.username;
+    username.innerText = '@'+contact.username;
 
     const button = document.createElement('button');
     button.classList.add('contact');
+    if (contact.haveUnreadMessages) {
+        button.classList.remove('hideBadge');
+    } else {
+        button.classList.add('hideBadge');
+    }
     button.onclick = () => {
         selectedContactId = contact.id;
+        button.classList.add('hideBadge');
+        contact.haveUnreadMessages = false;
         checkStatus(contact.id, (result, color) => {
             status.innerHTML = `Status : ${result}`;
             status.style.color = color;
@@ -134,6 +145,12 @@ function makeContactElement(contact) {
         showMessages(contact.messages);
     }
 
+    button.oncontextmenu = (e) =>{
+        e.preventDefault();
+        // menu to be shown with option of changing contact name.
+    }
+
+    button.appendChild(badge);
     button.appendChild(name);
     button.appendChild(status);
     button.appendChild(username);
@@ -157,8 +174,10 @@ function loadContacts(contacts) {
     let contactsElement = document.getElementById('contacts');
     contactsElement.innerHTML = '';
     contacts.forEach(contact => {
-        contactsElement.appendChild(makeContactElement(contact));
-    })
+        const contactElement = makeContactElement(contact);
+        contactMap.set(contact.id, contactElement);
+        contactsElement.appendChild(contactElement);
+    });
 }
 
 
@@ -184,7 +203,11 @@ function addMessage(data, isFromMe, addToMessageScreen) {
         time: data.time,
         isFromMe: isFromMe
     }
-    myData.contacts.find(contact => contact.id === selectedContactId).messages.push(message);
+    if (isFromMe) {
+        myData.contacts.find(contact => contact.id === data.to).messages.push(message);
+    }else{
+        myData.contacts.find(contact => contact.id === data.from).messages.push(message);
+    }
     if (addToMessageScreen) {
         messagesContainer.appendChild(makeMessageElement(message));
     }
@@ -201,15 +224,17 @@ function showInfo(text, color = 'black', time = 5) {
 }
 
 function addUserToContacts(user) {
+    const contacts = document.getElementById('contacts');
     const contact = {
         id: user.id,
         name: user.name,
         username: user.username,
         messages: []
     };
+    const contactElement = makeContactElement(contact);
     myData.contacts.push(contact);
-    const contacts = document.getElementById('contacts');
-    contacts.appendChild(makeContactElement(contact));
+    contacts.appendChild(contactElement);
+    contactMap.set(user.id, contactElement);
 }
 
 function areObjectsEqual(obj1, obj2) {
@@ -301,7 +326,6 @@ function loadNotifications(notifications) {
 }
 
 async function sendNotification(type, sender, receiverId, status = undefined) {
-    console.log('in sendnotification');
     const notification = {
         type: type,
         sender: sender,
@@ -319,7 +343,6 @@ async function sendNotification(type, sender, receiverId, status = undefined) {
         if (response.ok) {
             try {
                 const result = await response.json();
-                console.log(result);
                 return result;
             } catch (err) {
                 console.log("Error making request:", err);
@@ -342,11 +365,13 @@ closeModal.addEventListener('click', () => {
     modal.style.display = 'none';
 });
 
-
+function addContactHandler(){
+    
+}
 
 // Add a new contact
 addContactModalBtn.addEventListener('click', async () => {
-    const contactID = +document.getElementById('contactID').value;
+    const contactID = +contactIdInput.value;
     const me = {
         id: myData.me.id,
         name: myData.me.name,
@@ -361,13 +386,14 @@ addContactModalBtn.addEventListener('click', async () => {
                 return;
             }
             showInfo('Your request have been sent', 'green');
+            contactIdInput.value = '';
         } catch (err) {
             console.log(err);
         }
     }
 });
 
-sendMessageBtn.addEventListener('click', (e) => {
+function sendMessageHandler(e){
     e.preventDefault();
     const messageContent = messageInputField.value.trim();
     if (messageContent) {
@@ -377,11 +403,19 @@ sendMessageBtn.addEventListener('click', (e) => {
             to: selectedContactId,
             from: myData.me.id
         }
-        addMessage(message, true, true);
         electronAPI.sendMessage(message);
+        addMessage(message, true, true);
         messageInputField.value = '';
     }
+}
+
+sendMessageBtn.addEventListener('click', sendMessageHandler);
+messageInputField.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        sendMessageHandler(e);
+    }
 });
+
 
 // Hide modal when clicking outside of it
 window.onclick = function (event) {

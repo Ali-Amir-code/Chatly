@@ -7,13 +7,12 @@
 
 body{
     background: url('../img/mainBackground.jpg') no-repeat center center/cover;
+    background-attachment: fixed;
     font-family: cursive;
-    height: 100vh;
     color: var(--text-color);
     text-align: center;
     margin: 0;
     padding: 0;
-    width: 100vw;
     height: 100vh;
     display: flex;
     justify-content: center;

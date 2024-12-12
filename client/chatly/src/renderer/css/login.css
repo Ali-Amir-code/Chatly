@@ -14,9 +14,6 @@
 }
 
 .button-container {
-    position: absolute;
-    bottom: 30px;
-    left: 0;
     width: 100%;
 }
 
@@ -84,4 +81,16 @@
     background: var(--primary-color);
     transition: .5s ease-out;
     cursor: pointer;
+}
+
+#newUser a{
+    color : var(--text-color);
+}
+
+#newUser a:visited{
+    color: var(--text-color);
+}
+
+#newUser a:hover{
+color: var(--primary-color);
 }

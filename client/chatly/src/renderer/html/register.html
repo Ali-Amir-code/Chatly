@@ -16,7 +16,7 @@
             <h2>Let's sign you up!</h2>
             <div class="input-container">
                 <label for="username">Name:*</label>
-                <input type="text" name="name" id="name" placeholder="Type you name here" required>
+                <input type="text" name="name" id="name" placeholder="Type you name here" required autofocus>
             </div>
             <div class="input-container">
                 <label for="username">Username:*</label>
@@ -49,6 +49,9 @@
                 <button id="submitButton" type="submit" disabled>Sign Up</button>
             </div>
         </form>
+        <div id="oldUser">
+            <p>Already have an account? <a href="login.html">Log In</a></p>
+        </div>
     </div>
     <script src="../js/register.js"></script>
 </body>

@@ -6,7 +6,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onRecieveNotification : (callback) => ipcRenderer.on('notification', (event, notification) => callback(notification)),
     register: (name, username, password) => ipcRenderer.invoke('register', name, username, password),
     login: async (username,password) => ipcRenderer.invoke('login',username,password),
-    addContact : (contactName, contactID) => ipcRenderer.invoke('addContact', contactName, contactID),
     saveData: (data) => ipcRenderer.invoke('saveData', data),
     sendMessage : ( message) => ipcRenderer.invoke('sendMessage', message),
 });

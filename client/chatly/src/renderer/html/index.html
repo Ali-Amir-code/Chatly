@@ -15,7 +15,8 @@
                 <button id="addContactBtn">Add Contact</button>
             </div>
             <div id="contacts">
-                <button class="contact" onclick="showMessages('contact2')">
+                <button class="contact hideBadge" onclick="showMessages('contact2')">
+                    <img src="../img/unread-msg-badge.png" alt="" class="msgBadge">
                     <div class="name">Jane Doe</div>
                     <div class="status">Status: </div>
                     <div class="username">@janedoe</div>
@@ -70,7 +71,7 @@
             <h2>Add New Contact</h2>
             <label for="contactID">ID:</label>
             <input type="text" id="contactID">
-            <div id="contactModalInfoBox">Please enter a valid ID</div>
+            <div id="contactModalInfoBox"></div>
             <button id="addContact">Add Contact</button>
         </div>
     </div>
